@@ -1,2 +1,3 @@
 # AD_DS_Enterprise_Lab
 Manual deployment of an enterprise Active Directory infrastructure with Role-Based Access Control (RBAC).
+"I built a scalable identity management infrastructure from scratch using Active Directory Domain Services (AD DS). To mirror how a real company operates, I organized the environment into department-level Organizational Units (OUs). From there, I set up a strict Role-Based Access Control (RBAC) framework by creating separate Global Security Groups for management ('Supervisors') and regular employees ('Staff') within each business unit. Finally, I provisioned individual user accounts and mapped them directly to these groups—building a clean, secure, and easily maintainable permission baseline that scales cleanly as the company grows."
