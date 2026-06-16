@@ -1,6 +1,6 @@
 # AD_DS_Enterprise_Lab
 Building an Enterprise Active Directory Infrastructure from Scratch (with RBAC & Security Hardening)
-The Goal
+The Goal : 
 I wanted to build a realistic, production-ready identity management system from the ground up using Active Directory Domain Services (AD DS). Instead of just setting up a basic lab, I wanted to mirror how a real company actually handles user access and security.
 
 Step 1: Mapping the Company & Setting up RBAC
