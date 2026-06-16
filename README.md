@@ -1,15 +1,37 @@
 # AD_DS_Enterprise_Lab
-Manual deployment of an enterprise Active Directory infrastructure with Role-Based Access Control (RBAC).
-"I built a scalable identity management infrastructure from scratch using Active Directory Domain Services (AD DS). To mirror how a real company operates, I organized the environment into department-level Organizational Units (OUs). From there, I set up a strict Role-Based Access Control (RBAC) framework by creating separate Global Security Groups for management ('Supervisors') and regular employees ('Staff') within each business unit. Finally, I provisioned individual user accounts and mapped them directly to these groups—building a clean, secure, and easily maintainable permission baseline that scales cleanly as the company grows."
+Building an Enterprise Active Directory Infrastructure from Scratch (with RBAC & Security Hardening)
+The Goal
+I wanted to build a realistic, production-ready identity management system from the ground up using Active Directory Domain Services (AD DS). Instead of just setting up a basic lab, I wanted to mirror how a real company actually handles user access and security.
 
-With the core identity structure in place, I shifted my focus to security hardening. A clean directory structure doesn't mean much if the front door is left wide open to brute-force attacks. To protect our users against automated password-guessing, I created and linked a root-level Group Policy Object (GPO) named Corporate_Security_Policy.
+Step 1: Mapping the Company & Setting up RBAC
+I started by organizing the environment into department-level Organizational Units (OUs) (like HR, Finance, IT, and Sales).
 
-Inside the Account Lockout policies, I configured a strict '5-strikes' threshold. If anyone—or any malicious bot—attempts to guess a password and fails five consecutive times, Active Directory steps in and automatically freezes the account. To avoid leaving the network exposed during standard background refresh intervals, I hopped into the command line and forced an immediate global deployment using gpupdate /force. This wrapped up the phase by ensuring that our new security baseline went live across every single domain node instantly."
+To handle permissions cleanly, I chose a Role-Based Access Control (RBAC) strategy. Instead of assigning permissions to users one by one (which would be a total nightmare to manage as a company grows), I created two Global Security Groups inside every single department:
 
-"After locking down our user security, I needed to solve a classic network dilemma: how to let our lab computers access the internet without breaking Active Directory.
+[Department]_Supervisors (for management)
 
-Because Active Directory relies entirely on its own private DNS records to find local domain controllers and users, its network card is intentionally locked to its loopback address (127.0.0.1). This means the server looks entirely inward. It is the absolute authority for our private domain, but it has no idea how to find websites on the public internet like Google or GitHub.
+[Department]_Staff (for regular employees)
 
-To bridge this gap cleanly without breaking local authentication, I implemented a split-DNS strategy by configuring DNS Forwarders within the Windows DNS Manager.
+Once that scaffolding was up, I provisioned individual user accounts and dropped them directly into their matching groups. This gave me a super clean, organized permission baseline where if a new hire joins the Finance team, I just drop them in the Finance_Staff group and they instantly get the exact access they need.
 
-Think of this as establishing a smart switchboard rule. When a user looks for a local server or computer, our domain controller handles it internally. But if a user tries to browse the web, our server recognizes that it doesn't own the public internet and automatically forwards that request out to a public resolver like Google DNS (8.8.8.8). This keeps our Active Directory environment perfectly isolated and stable while giving our infrastructure safe, reliable outbound access to the outside world."
+Step 2: Locking the Front Door (Group Policy Hardening)
+With the structure looking good, I realized a clean directory doesn't mean much if the front door is wide open to brute-force attacks. If a hacker or an automated bot wanted to, they could just guess passwords all day long.
+
+To stop this, I created a domain-wide Group Policy Object (GPO) called Corporate_Security_Policy and linked it right at the top of the domain so it would apply to absolutely everyone.
+
+Inside the policy editor, I set up a strict "5-strikes" rule under the Account Lockout settings. Now, if anyone tries to guess a password and gets it wrong 5 times in a row, Active Directory steps in and automatically freezes that account for 30 minutes.
+
+To make sure this rule went into effect immediately—instead of waiting up to 90 minutes for Windows to update itself in the background—I opened up the command prompt and ran: "gpupdate /force". This forced every single computer on the domain to pull down the new rule right that second.
+
+Step 3: Solving the Internet Dilemma (DNS Forwarders)
+Next, I hit a classic network roadblock: my lab machines couldn't get onto the internet. Active Directory relies entirely on its own local DNS to find domain controllers and log users in. Because of this, the server’s network card has to point to its loopback address (127.0.0.1). It’s an expert at finding local machines, but because it only looks inward, it has no clue how to find external sites like Google or GitHub.
+
+If I changed the network card to point to Google DNS directly to fix the internet, it would completely break Active Directory.
+
+To solve this, I configured DNS Forwarders inside the Windows DNS Manager. It acts like a smart switchboard:
+
+When a user looks for a local server, our domain controller handles it internally.
+
+When a user tries to browse a public website, the server realizes, "Hey, I don't own the internet," and forwards that specific request out to Google's public resolver (8.8.8.8).
+
+This gave me the best of both worlds: a perfectly isolated, stable Active Directory environment that can still talk to the outside world whenever it needs to update or download packages.
